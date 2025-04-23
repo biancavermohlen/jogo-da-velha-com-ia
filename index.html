@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Velha</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a2e;
+            color: #fff;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            color: #ff4081; /* Rosa vibrante */
+            font-size: 2.5rem;
+            margin-top: 30px;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+            justify-content: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: bold;
+            border: 2px solid #ff4081; /* Rosa vibrante */
+            background-color: #30303d; /* Azul escuro */
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .cell:hover {
+            background-color: #ff4081; /* Rosa vibrante no hover */
+            transform: scale(1.1);
+        }
+
+        .cell.taken {
+            cursor: not-allowed;
+            background-color: #444;
+        }
+
+        #reset {
+            background-color: #ff4081;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            margin-top: 30px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        #reset:hover {
+            background-color: #e40046; /* Rosa mais escuro no hover */
+        }
+
+        #message {
+            font-size: 1.5rem;
+            color: #ff4081;
+            margin-top: 20px;
+        }
+
+        .scores {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #fff;
+        }
+
+        .scores p {
+            margin: 5px 0;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Jogo da Velha</h1>
+    <div class="board" id="board"></div>
+    <button id="reset">Reiniciar</button>
+    <p id="message"></p>
+    <div class="scores">
+        <p>Você: <span id="score-x">0</span></p>
+        <p>IA Supremo: <span id="score-o">0</span></p>
+    </div>
+
+    <script>
+        const board = document.getElementById("board");
+        const resetButton = document.getElementById("reset");
+        const message = document.getElementById("message");
+        const scoreX = document.getElementById("score-x");
+        const scoreO = document.getElementById("score-o");
+        let currentPlayer = "X";
+        let gameBoard = ["", "", "", "", "", "", "", "", ""];
+        
+        // Nomes personalizados dos jogadores
+        const playerNames = {
+            X: "Você",
+            O: "IA Supremo"
+        };
+
+        function checkWinner() {
+            const winningCombinations = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+            for (let combo of winningCombinations) {
+                const [a, b, c] = combo;
+                if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+                    const winner = gameBoard[a];
+                    message.textContent = `${playerNames[winner]} venceu!`;
+                    updateScore(winner);
+                    return true;
+                }
+            }
+            if (!gameBoard.includes("")) {
+                message.textContent = "Empate!";
+                return true;
+            }
+            return false;
+        }
+
+        function updateScore(player) {
+            if (player === "X") {
+                scoreX.textContent = parseInt(scoreX.textContent) + 1;
+            } else {
+                scoreO.textContent = parseInt(scoreO.textContent) + 1;
+            }
+        }
+
+        function handleClick(index, cell) {
+            if (gameBoard[index] === "" && !message.textContent && currentPlayer === "X") {
+                gameBoard[index] = currentPlayer;
+                cell.textContent = currentPlayer;
+                cell.classList.add("taken");
+                if (!checkWinner()) {
+                    currentPlayer = "O";
+                    setTimeout(aiMove, 500);
+                }
+            }
+        }
+
+        function aiMove() {
+            let emptyCells = gameBoard.map((val, idx) => val === "" ? idx : null).filter(val => val !== null);
+            if (emptyCells.length > 0) {
+                let randomIndex = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                gameBoard[randomIndex] = "O";
+                let cell = board.children[randomIndex];
+                cell.textContent = "O";
+                cell.classList.add("taken");
+                if (!checkWinner()) {
+                    currentPlayer = "X";
+                }
+            }
+        }
+
+        function resetGame() {
+            gameBoard = ["", "", "", "", "", "", "", "", ""];
+            currentPlayer = "X";
+            message.textContent = "";
+            board.innerHTML = "";
+            createBoard();
+        }
+
+        function createBoard() {
+            gameBoard.forEach((_, index) => {
+                const cell = document.createElement("div");
+                cell.classList.add("cell");
+                cell.addEventListener("click", () => handleClick(index, cell));
+                board.appendChild(cell);
+            });
+        }
+
+        createBoard();
+        resetButton.addEventListener("click", resetGame);
+    </script>
+</body>
+</html>
